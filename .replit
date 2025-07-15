@@ -18,4 +18,5 @@ packages = [
   "tk",
   "xsimd",
   "zlib",
+  "gunicorn",
 ]
