@@ -28,7 +28,7 @@ app.secret_key = os.environ.get("SESSION_SECRET", "your-secret-key-change-in-pro
 
 # Database setup
 app.config['SQLALCHEMY_DATABASE_URI'] = \
-    'mysql+mysqlconnector://root:096161@localhost:3309/dorm'
+    'mysql+mysqlconnector://root:UxqGMIwXYokkXiqQtGxGGsFXKLRfOGfn@gondola.proxy.rlwy.net:58237/railway'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
