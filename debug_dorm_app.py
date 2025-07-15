@@ -14,7 +14,6 @@ from PIL import Image
 import numpy as np
 from flask_mail import Mail, Message
 
-
 clf = joblib.load('photo_verification_model.pkl')
 
 
@@ -35,7 +34,6 @@ import os
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
 
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
@@ -859,6 +857,6 @@ if __name__ == '__main__':
         logger.error(f" Failed to start application: {e}")
         traceback.print_exc()
         exit(1)
-if __name__ == '__main__':
-app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 8080)))
 
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 8080)))
