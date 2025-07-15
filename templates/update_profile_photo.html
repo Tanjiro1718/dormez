@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Update Profile Photo{% endblock %}
+
+{% block content %}
+<h3>Update Your Profile Photo</h3>
+<form method="POST" enctype="multipart/form-data">
+    <div class="mb-3">
+        <label for="profile_photo" class="form-label">Choose new photo</label>
+        <input type="file" class="form-control" id="profile_photo" name="profile_photo" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Update Photo</button>
+</form>
+{% endblock %}

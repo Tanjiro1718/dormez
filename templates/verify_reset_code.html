@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Enter the code sent to your email</h3>
+<form method="POST">
+    <input type="text" name="code" class="form-control" placeholder="Enter 6-digit code" required>
+    <button type="submit" class="btn btn-primary mt-2">Verify Code</button>
+</form>
+{% endblock %}

@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Owner Dashboard - Dorm System{% endblock %}
+
+{% block content %}
+<h2>Owner Dashboard</h2>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h5>Total Users</h5>
+                <h2>{{ stats.total_users }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5>Total Rooms</h5>
+                <h2>{{ stats.total_rooms }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h5>Active Bookings</h5>
+                <h2>{{ stats.active_bookings }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <h5>Pending Approvals</h5>
+                <h2>{{ stats.pending_approvals }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pending Users -->
+{% if pending_users %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h4>Pending User Approvals</h4>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>Photo</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in pending_users %}
+                    <tr>
+                        <td>
+                            {% if user.photo %}
+                                <img src="{{ url_for('static', filename='uploads/' ~ user.photo) }}"
+                                    alt="Photo" style="max-width: 100px; cursor: pointer;"
+                                    onclick="showImageModal('{{ url_for('static', filename='uploads/' ~ user.photo) }}')">
+                            {% else %}
+                                <span class="text-muted">No photo</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.role.title() }}</td>
+                        <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            <a href="{{ url_for('approve_user', user_id=user.id) }}" 
+                                class="btn btn-sm btn-success mb-1">Approve</a>
+                            <a href="{{ url_for('reject_user', user_id=user.id) }}" 
+                                class="btn btn-sm btn-warning mb-1">Reject</a>
+                            <form method="POST" action="{{ url_for('owner_delete_user', user_id=user.id) }}" 
+                                onsubmit="return confirm('Are you sure you want to delete this user?');" style="display: inline;">
+                                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                            </form>
+                        </td>
+
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- All Users -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h4>All Users</h4>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in all_users %}
+                    <tr>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.role.title() }}</td>
+                        <td>{{ user.status }}</td>
+                        <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            <form method="POST" action="{{ url_for('owner_delete_user', user_id=user.id) }}" 
+                                  onsubmit="return confirm('Are you sure you want to delete this user?');" style="display: inline;">
+                                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h4>System Overview</h4>
+    </div>
+    <div class="card-body">
+        <p>Welcome to the owner dashboard. You can manage user approvals and monitor the system from here.</p>
+    </div>
+</div>
+
+<!-- Image Zoom Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content bg-transparent border-0 shadow-none">
+      <div class="modal-body text-center p-0">
+        <img id="modalImage" src="" alt="Zoomed Photo"
+             class="img-fluid rounded"
+             style="max-height: 80vh; max-width: 100%; object-fit: contain; cursor: zoom-out;"
+             onclick="hideImageModal()">
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function showImageModal(imageUrl) {
+    var modalImg = document.getElementById('modalImage');
+    modalImg.src = imageUrl;
+    var modal = new bootstrap.Modal(document.getElementById('imageModal'));
+    modal.show();
+}
+
+function hideImageModal() {
+    var modal = bootstrap.Modal.getInstance(document.getElementById('imageModal'));
+    modal.hide();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Register as Boarder - DormEZ{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header text-center">
+                <h4><i class="fas fa-bed"></i> Register as Boarder</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="username" class="form-label"><i class="fas fa-user"></i> Username</label>
+                        <input type="text" class="form-control" id="username" name="username" required>
+                        <div class="form-text">Choose a unique username</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label"><i class="fas fa-envelope"></i> Email Address</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                        <div class="form-text">We'll use this for important notifications</div>
+                    </div>
+                    
+                    <div class="mb-3 position-relative">
+                        <label for="password" class="form-label"><i class="fas fa-lock"></i> Password</label>
+                        <input type="password" class="form-control pe-5" id="password" name="password" required minlength="6">
+                        <i class="fas fa-eye position-absolute" id="togglePassword1" style="top: 42px; right: 15px; cursor: pointer; color: #6c757d;"></i>
+                        <div class="form-text">Minimum 6 characters</div>
+                    </div>
+                    
+                    <div class="mb-3 position-relative">
+                        <label for="confirm_password" class="form-label"><i class="fas fa-lock"></i> Confirm Password</label>
+                        <input type="password" class="form-control pe-5" id="confirm_password" name="confirm_password" required>
+                        <i class="fas fa-eye position-absolute" id="togglePassword2" style="top: 41px; right: 15px; cursor: pointer; color: #6c757d;"></i>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Note:</strong> Your account will be pending approval until an administrator approves it.
+                    </div>
+                    
+                    <div class="mb-3 text-center">
+                        <div class="g-recaptcha" data-sitekey="6Le7fXkrAAAAAJn5SOF-UxbiFVS7rkw-ZybWDtfI"></div>
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg"><i class="fas fa-user-plus"></i> Register as Boarder</button>
+                    </div>
+                </form>
+                
+                <div class="text-center mt-3">
+                    <p><a href="{{ url_for('register_choice') }}"><i class="fas fa-arrow-left"></i> Back to registration options</a></p>
+                    <p>Already have an account? <a href="{{ url_for('login') }}">Login here</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<script>
+    // Toggle password visibility
+    document.getElementById('togglePassword1').addEventListener('click', function () {
+        const input = document.getElementById('password');
+        const icon = this;
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    });
+
+    document.getElementById('togglePassword2').addEventListener('click', function () {
+        const input = document.getElementById('confirm_password');
+        const icon = this;
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    });
+
+    // Password confirmation validation
+    document.getElementById('confirm_password').addEventListener('input', function() {
+        const password = document.getElementById('password').value;
+        const confirmPassword = this.value;
+        if (password !== confirmPassword) {
+            this.setCustomValidity('Passwords do not match');
+        } else {
+            this.setCustomValidity('');
+        }
+    });
+</script>
+{% endblock %}

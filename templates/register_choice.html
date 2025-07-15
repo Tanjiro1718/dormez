@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Choose Registration Type - DormEZ{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header text-center">
+                <h4><i class="fas fa-user-plus"></i> Choose Your Registration Type</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100 border-primary">
+                            <div class="card-body text-center">
+                                <i class="fas fa-bed fa-4x text-primary mb-3"></i>
+                                <h5 class="card-title">Register as Boarder</h5>
+                                <p class="card-text">
+                                    Looking for a place to stay? Register as a boarder to:
+                                </p>
+                                <ul class="list-unstyled text-start">
+                                    <li><i class="fas fa-check text-success"></i> Browse available rooms</li>
+                                    <li><i class="fas fa-check text-success"></i> Book dormitory rooms</li>
+                                    <li><i class="fas fa-check text-success"></i> Manage your bookings</li>
+                                    <li><i class="fas fa-check text-success"></i> View room details and pricing</li>
+                                </ul>
+                                <a href="{{ url_for('register_boarder') }}" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-user-plus"></i> Register as Boarder
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100 border-success">
+                            <div class="card-body text-center">
+                                <i class="fas fa-building fa-4x text-success mb-3"></i>
+                                <h5 class="card-title">Register as Landlord</h5>
+                                <p class="card-text">
+                                    Own dormitory rooms? Register as a landlord to:
+                                </p>
+                                <ul class="list-unstyled text-start">
+                                    <li><i class="fas fa-check text-success"></i> List your rooms</li>
+                                    <li><i class="fas fa-check text-success"></i> Manage room details</li>
+                                    <li><i class="fas fa-check text-success"></i> Track bookings</li>
+                                    <li><i class="fas fa-check text-success"></i> Monitor occupancy</li>
+                                </ul>
+                                <a href="{{ url_for('register_landlord') }}" class="btn btn-success btn-lg">
+                                    <i class="fas fa-key"></i> Register as Landlord
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>Note:</strong> All registrations require admin approval before you can access the system.
+                            You'll receive a notification once your account is approved.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-3">
+                    <p>Already have an account? <a href="{{ url_for('login') }}">Login here</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

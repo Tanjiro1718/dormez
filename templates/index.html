@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="jumbotron">
+    <h1 class="display-4">Welcome to Dorm Management System</h1>
+    <p class="lead">Manage your dormitory bookings and rooms efficiently.</p>
+    <hr class="my-4">
+    <div class="btn-group">
+        <a class="btn btn-primary btn-lg" href="{{ url_for('login') }}">Login</a>
+        <a class="btn btn-secondary btn-lg" href="{{ url_for('register_choice') }}">Register</a>
+    </div>
+</div>
+{% endblock %}

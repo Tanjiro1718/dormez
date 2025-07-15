@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block title %}Landlord Dashboard - DormEZ{% endblock %}
+
+{% block content %}
+<div class="row mt-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h2><i class="fas fa-building"></i> Landlord Dashboard</h2>
+            <p class="text-muted">Manage your rooms and track bookings, {{ session.username }}!</p>
+        </div>
+        <div>
+            <a href="{{ url_for('add_room') }}" class="btn btn-primary me-2">
+                <i class="fas fa-plus"></i> Add New Room
+            </a>
+            <button class="btn btn-outline-primary" id="toggleProfileBtn">
+                <i class="fas fa-user"></i> Profile
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Row -->
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card stats-card text-white bg-primary">
+            <div class="card-body">
+                <h6>Total Rooms</h6>
+                <h3>{{ my_rooms|length }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card text-white bg-success">
+            <div class="card-body">
+                <h6>Available</h6>
+                <h3>{{ my_rooms|selectattr('is_available')|list|length }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card text-white bg-warning">
+            <div class="card-body">
+                <h6>Occupied</h6>
+                <h3>{{ my_rooms|rejectattr('is_available')|list|length }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stats-card text-white bg-info">
+            <div class="card-body">
+                <h6>Total Bookings</h6>
+                <h3>{{ my_bookings|length }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main content + profile side by side -->
+<div class="row mt-4">
+    <!-- Main content column -->
+    <div class="col-md-8">
+        <!-- My Rooms -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5><i class="fas fa-door-closed"></i> My Rooms</h5>
+            </div>
+            <div class="card-body">
+                {% if my_rooms %}
+                    <div class="table-responsive">
+                        <table class="table table-striped align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Photo</th>
+                                    <th>Room Number</th>
+                                    <th>Capacity</th>
+                                    <th>Rent Price</th>
+                                    <th>Status</th>
+                                    <th>Description</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for room in my_rooms %}
+                                    <tr>
+                                        <td>
+                                            {% if room.photo %}
+                                                <img src="{{ url_for('static', filename='uploads/' ~ room.photo) }}"
+                                                     alt="Room Photo"
+                                                     style="width: 80px; height: 80px; object-fit: cover; border-radius: 5px;">
+                                            {% else %}
+                                                <span class="text-muted">No photo</span>
+                                            {% endif %}
+                                        </td>
+                                        <td><strong>{{ room.room_number }}</strong></td>
+                                        <td><i class="fas fa-users"></i> {{ room.capacity }}</td>
+                                        <td><span class="text-success">₱{{ "%.2f"|format(room.rent_price) }}</span></td>
+                                        <td>
+                                            {% if room.is_available %}
+                                                <span class="badge bg-success">Available</span>
+                                            {% else %}
+                                                <span class="badge bg-warning">Occupied</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if room.description %}
+                                                {{ room.description[:50] }}{% if room.description|length > 50 %}...{% endif %}
+                                            {% else %}
+                                                <em class="text-muted">No description</em>
+                                            {% endif %}
+                                        </td>
+                                        <td><small class="text-muted">{{ room.created_at.strftime('%Y-%m-%d') }}</small></td>
+                                        <td>
+                                            <form method="POST" action="{{ url_for('delete_room', room_id=room.id) }}" 
+                                                  onsubmit="return confirm('Are you sure you want to delete this room?');">
+                                                <button type="submit" class="btn btn-sm btn-danger">
+                                                    <i class="fas fa-trash-alt"></i> Delete
+                                                </button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        You haven't added any rooms yet. 
+                        <a href="{{ url_for('add_room') }}" class="alert-link">Add your first room</a> to get started!
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recent Bookings -->
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-bookmark"></i> Recent Bookings</h5>
+            </div>
+            <div class="card-body">
+                {% if my_bookings %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Room</th>
+                                    <th>Boarder</th>
+                                    <th>Boarder Email</th>
+                                    <th>Start Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for booking, room, user in my_bookings %}
+                                    <tr>
+                                        <td><strong>{{ room.room_number }}</strong></td>
+                                        <td><i class="fas fa-user"></i> {{ user.username }}</td>
+                                        <td><small>{{ user.email }}</small></td>
+                                        <td>{{ booking.start_date.strftime('%Y-%m-%d') }}</td>
+                                        <td><span class="badge bg-success">{{ booking.status|title }}</span></td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        No bookings yet. Once boarders start booking your rooms, they'll appear here.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile column -->
+    <div class="col-md-4" id="profileCard" style="display:none;">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5><i class="fas fa-user"></i> My Profile</h5>
+            </div>
+            <div class="card-body text-center">
+                {% if current_user.profile_photo %}
+                    <img src="{{ url_for('static', filename='uploads/' ~ current_user.profile_photo) }}"
+                         alt="Profile Photo"
+                         style="width: 150px; height: 150px; object-fit: cover; border-radius: 50%;">
+                {% else %}
+                    <p class="text-muted">No profile photo set.</p>
+                {% endif %}
+                <a href="{{ url_for('update_profile_photo') }}" class="btn btn-sm btn-outline-primary mt-2">Upload Profile Photo</a>
+
+                <h6 class="mt-3">{{ current_user.username }}</h6>
+                <p class="mb-1"><i class="fas fa-envelope"></i> {{ current_user.email }}</p>
+                <p><i class="fas fa-user-tag"></i> {{ current_user.role.title() }}</p>
+                <small class="text-muted">Joined: {{ current_user.created_at.strftime('%Y-%m-%d') }}</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('toggleProfileBtn').addEventListener('click', function () {
+        var profile = document.getElementById('profileCard');
+        if (profile.style.display === 'none') {
+            profile.style.display = 'block';
+        } else {
+            profile.style.display = 'none';
+        }
+    });
+</script>
+{% endblock %}
