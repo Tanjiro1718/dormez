@@ -1,1 +1,2 @@
-web: python debug_dorm_app.py
+web: gunicorn debug_dorm_app:app
+
