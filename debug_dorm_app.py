@@ -31,6 +31,7 @@ app.secret_key = os.environ.get("SESSION_SECRET",
 
 # Database setup
 import os
+
 raw_uri = os.environ.get("DATABASE_URL")
 if raw_uri.startswith("postgres://"):
     raw_uri = raw_uri.replace("postgres://", "postgresql+psycopg2://", 1)
@@ -361,7 +362,7 @@ def forgot_password():
                 flash('✅ A code has been sent to your email.', 'success')
                 return redirect(url_for('verify_reset_code', user_id=user.id))
             except Exception as e:
-                print(f"Email error: {e}")0
+                print(f"Email error: {e}")
                 flash('❌ Email sending failed. Please check email config.',
                       'danger')
         else:
@@ -842,18 +843,17 @@ def init_db():
 
 
 if __name__ == "__main__":
-            try:
-                logger.info(" Starting Flask application...")
+    try:
+        logger.info(" Starting Flask application...")
 
-                if not test_db_connection():
-                    logger.error(" Cannot start app - database connection failed")
-                    exit(1)
+        if not test_db_connection():
+            logger.error(" Cannot start app - database connection failed")
+            exit(1)
 
-                init_db()
-                logger.info(" App initialization successful, starting server...")
-                app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 8080)))
-            except Exception as e:
-                logger.error(f" Failed to start application: {e}")
-                traceback.print_exc()
-                exit(1)
-
+        init_db()
+        logger.info(" App initialization successful, starting server...")
+        app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 8080)))
+    except Exception as e:
+        logger.error(f" Failed to start application: {e}")
+        traceback.print_exc()
+        exit(1)
