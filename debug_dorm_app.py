@@ -16,27 +16,19 @@ from flask_mail import Mail, Message
 
 clf = joblib.load('photo_verification_model.pkl')
 
-
 def extract_features(image_path):
     img = Image.open(image_path).resize((64, 64)).convert('L')
     return np.array(img).flatten().reshape(1, -1)
-
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET",
-                                "your-secret-key-change-in-production")
+app.secret_key = os.environ.get("SESSION_SECRET", "your-secret-key-change-in-production")
 
 # Database setup
-import os
-
-raw_uri = os.environ.get("DATABASE_URL")
-if raw_uri.startswith("postgres://"):
-    raw_uri = raw_uri.replace("postgres://", "postgresql+psycopg2://", 1)
-app.config['SQLALCHEMY_DATABASE_URI'] = raw_uri
-
+app.config['SQLALCHEMY_DATABASE_URI'] = \
+    'mysql+mysqlconnector://root:096161@localhost:3309/dorm'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
@@ -55,7 +47,6 @@ except Exception as e:
     logger.error(f"❌ Failed to initialize SQLAlchemy: {e}")
     raise
 
-
 # Database Models
 class User(db.Model):
     __tablename__ = 'users'
@@ -70,7 +61,6 @@ class User(db.Model):
     reset_code = db.Column(db.String(10), nullable=True)
     profile_photo = db.Column(db.String(255), nullable=True)
 
-
 class Room(db.Model):
     __tablename__ = 'rooms'
     id = db.Column(db.Integer, primary_key=True)
@@ -83,19 +73,15 @@ class Room(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     photo = db.Column(db.String(255))
 
-
 class Booking(db.Model):
     __tablename__ = 'bookings'
     id = db.Column(db.Integer, primary_key=True)
     room_id = db.Column(db.Integer, db.ForeignKey('rooms.id'), nullable=False)
-    boarder_id = db.Column(db.Integer,
-                           db.ForeignKey('users.id'),
-                           nullable=False)
+    boarder_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     start_date = db.Column(db.DateTime, nullable=False)
     end_date = db.Column(db.DateTime)
     status = db.Column(db.String(20), default='active')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
 
 # Database creation function
 def create_database_if_missing():
@@ -105,7 +91,7 @@ def create_database_if_missing():
         uri = app.config['SQLALCHEMY_DATABASE_URI']
         db_name = uri.split('/')[-1]
         base_uri = uri.rsplit('/', 1)[0]
-
+        
         temp_engine = create_engine(base_uri)
         with temp_engine.connect() as conn:
             conn.execute(text(f"CREATE DATABASE IF NOT EXISTS {db_name}"))
@@ -114,7 +100,6 @@ def create_database_if_missing():
     except OperationalError as e:
         logger.error(f"❌ Database creation failed: {str(e)}")
         raise
-
 
 # Test database connection
 def test_db_connection():
@@ -130,26 +115,20 @@ def test_db_connection():
         logger.error(f"❌ Database connection failed: {e}")
         return False
 
-
 # Authentication decorator
 def login_required(f):
     from functools import wraps
-
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
             flash('Please login first', 'danger')
             return redirect(url_for('login'))
         return f(*args, **kwargs)
-
     return decorated_function
-
 
 def role_required(role):
     from functools import wraps
-
     def decorator(f):
-
         @wraps(f)
         def decorated_function(*args, **kwargs):
             if 'user_id' not in session:
@@ -159,11 +138,8 @@ def role_required(role):
                 flash('Access denied', 'danger')
                 return redirect(url_for('dashboard'))
             return f(*args, **kwargs)
-
         return decorated_function
-
     return decorator
-
 
 # Error handlers
 @app.errorhandler(500)
@@ -172,11 +148,9 @@ def internal_error(error):
     db.session.rollback()
     return "Internal Server Error - Check console for details", 500
 
-
 @app.errorhandler(404)
 def not_found_error(error):
     return "Page not found", 404
-
 
 # Routes
 @app.route('/')
@@ -189,7 +163,6 @@ def home():
         traceback.print_exc()
         return f"Error in home route: {str(e)}", 500
 
-
 @app.route('/register')
 def register_choice():
     try:
@@ -198,7 +171,6 @@ def register_choice():
         logger.error(f"❌ Error in register_choice: {e}")
         return f"Template error: {str(e)}", 500
 
-
 @app.route('/register/boarder', methods=['GET', 'POST'])
 def register_boarder():
     try:
@@ -206,36 +178,37 @@ def register_boarder():
             username = request.form['username']
             password = request.form['password']
             email = request.form['email']
+            
 
             if User.query.filter_by(username=username).first():
                 flash('Username already exists', 'danger')
                 return redirect(url_for('register_boarder'))
-
+            
             if User.query.filter_by(email=email).first():
                 flash('Email already exists', 'danger')
                 return redirect(url_for('register_boarder'))
-
+            
             hashed_password = generate_password_hash(password)
-            new_user = User(username=username,
-                            password=hashed_password,
-                            email=email,
-                            role='boarder',
-                            status='pending')
-
+            new_user = User(
+                username=username,
+                password=hashed_password,
+                email=email,
+                role='boarder',
+                status='pending'
+            )
+            
             db.session.add(new_user)
             db.session.commit()
-
-            flash('Registration successful! Please wait for admin approval.',
-                  'success')
+            
+            flash('Registration successful! Please wait for admin approval.', 'success')
             return redirect(url_for('login'))
-
+        
         return render_template('register_boarder.html')
     except Exception as e:
         logger.error(f"❌ Error in register_boarder: {e}")
         traceback.print_exc()
         db.session.rollback()
         return f"Registration error: {str(e)}", 500
-
 
 @app.route('/register/landlord', methods=['GET', 'POST'])
 def register_landlord():
@@ -245,13 +218,14 @@ def register_landlord():
             password = request.form['password']
             email = request.form['email']
             file = request.files['photo']
-
+            
             recaptcha_response = request.form.get('g-recaptcha-response')
             secret = '6Le7fXkrAAAAAItVOtubBGjinYKEEi9YLLHfsMKR'
-            payload = {'secret': secret, 'response': recaptcha_response}
-            r = requests.post(
-                'https://www.google.com/recaptcha/api/siteverify',
-                data=payload)
+            payload = {
+                'secret': secret,
+                'response': recaptcha_response
+            }
+            r = requests.post('https://www.google.com/recaptcha/api/siteverify', data=payload)
             result = r.json()
             if not result.get('success'):
                 flash('Invalid reCAPTCHA. Please try again.', 'danger')
@@ -260,11 +234,11 @@ def register_landlord():
             if User.query.filter_by(username=username).first():
                 flash('Username already exists', 'danger')
                 return redirect(url_for('register_landlord'))
-
+            
             if User.query.filter_by(email=email).first():
                 flash('Email already exists', 'danger')
                 return redirect(url_for('register_landlord'))
-
+            
             if file and file.filename != '':
                 filename = f"{username}_{file.filename}"
                 file_path = os.path.join(UPLOAD_FOLDER, filename)
@@ -274,36 +248,33 @@ def register_landlord():
                     features = extract_features(file_path)
                 except Exception as e:
                     logger.error(f"❌ Image processing error: {e}")
-                    flash(
-                        'Invalid or corrupted image file. Please upload a valid photo.',
-                        'danger')
+                    flash('Invalid or corrupted image file. Please upload a valid photo.', 'danger')
                     if os.path.exists(file_path):
                         os.remove(file_path)
                     return redirect(url_for('register_landlord'))
 
                 prediction = clf.predict(features)[0]
                 if prediction == 1:
-                    flash(
-                        'Photo verification failed. Please upload a real photo.',
-                        'danger')
+                    flash('Photo verification failed. Please upload a real photo.', 'danger')
                     return redirect(url_for('register_landlord'))
-
+            
             # Create new landlord
             hashed_password = generate_password_hash(password)
-            new_user = User(username=username,
-                            password=hashed_password,
-                            email=email,
-                            role='landlord',
-                            status='pending',
-                            photo=filename)
-
+            new_user = User(
+                username=username,
+                password=hashed_password,
+                email=email,
+                role='landlord',
+                status='pending',
+                photo=filename
+            )
+            
             db.session.add(new_user)
             db.session.commit()
-
-            flash('Registration successful! Please wait for admin approval.',
-                  'success')
+            
+            flash('Registration successful! Please wait for admin approval.', 'success')
             return redirect(url_for('login'))
-
+        
         return render_template('register_landlord.html')
     except Exception as e:
         logger.error(f"❌ Error in register_landlord: {e}")
@@ -311,37 +282,35 @@ def register_landlord():
         db.session.rollback()
         return f"Registration error: {str(e)}", 500
 
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     try:
         if request.method == 'POST':
             username = request.form['username']
             password = request.form['password']
-
+            
             user = User.query.filter_by(username=username).first()
-
+            
             if user and check_password_hash(user.password, password):
                 if user.status != 'approved':
                     flash('Your account is pending approval', 'warning')
                     return redirect(url_for('login'))
-
+                
                 session['user_id'] = user.id
                 session['username'] = user.username
                 session['role'] = user.role
-
+                
                 flash(f'Welcome back, {user.username}!', 'success')
                 return redirect(url_for('dashboard'))
-
+            
             flash('Invalid credentials', 'danger')
-
+        
         return render_template('login.html')
     except Exception as e:
         logger.error(f"❌ Error in login: {e}")
         traceback.print_exc()
         return f"Login error: {str(e)}", 500
-
-
+    
 @app.route('/forgot_password', methods=['GET', 'POST'])
 def forgot_password():
     if request.method == 'POST':
@@ -363,13 +332,11 @@ def forgot_password():
                 return redirect(url_for('verify_reset_code', user_id=user.id))
             except Exception as e:
                 print(f"Email error: {e}")
-                flash('❌ Email sending failed. Please check email config.',
-                      'danger')
+                flash('❌ Email sending failed. Please check email config.', 'danger')
         else:
             flash('⚠️ Username and email do not match.', 'warning')
 
     return render_template('forgot_password_dashboard.html')
-
 
 @app.route('/verify_reset_code/<int:user_id>', methods=['GET', 'POST'])
 def verify_reset_code(user_id):
@@ -381,14 +348,12 @@ def verify_reset_code(user_id):
     if request.method == 'POST':
         entered_code = request.form['code']
         if entered_code == user.reset_code:
-            flash('✅ Code verified. You can now reset your password.',
-                  'success')
+            flash('✅ Code verified. You can now reset your password.', 'success')
             return redirect(url_for('reset_password', user_id=user.id))
         else:
             flash('❌ Invalid code.', 'danger')
 
     return render_template('verify_reset_code.html', user=user)
-
 
 @app.route('/reset_password/<int:user_id>', methods=['GET', 'POST'])
 def reset_password(user_id):
@@ -406,23 +371,21 @@ def reset_password(user_id):
             flash('⚠️ Passwords do not match.', 'danger')
             return redirect(request.url)
 
+
         # Save new password
         user.password = generate_password_hash(new_password)
-        user.reset_code = None
+        user.reset_code = None 
         db.session.commit()
         flash('✅ Password reset successfully! You can now log in.', 'success')
         return redirect(url_for('login'))
 
     return render_template('reset_password.html', user=user)
 
-
 @app.route('/dashboard')
 @login_required
 def dashboard():
     try:
-        logger.info(
-            f"🧭 Dashboard accessed by user: {session.get('username')} with role: {session.get('role')}"
-        )
+        logger.info(f"🧭 Dashboard accessed by user: {session.get('username')} with role: {session.get('role')}")
         role = session.get('role')
         if role == 'boarder':
             return redirect(url_for('boarder_dashboard'))
@@ -438,7 +401,6 @@ def dashboard():
         traceback.print_exc()
         return f"Dashboard error: {str(e)}", 500
 
-
 @app.route('/boarder/dashboard')
 @role_required('boarder')
 def boarder_dashboard():
@@ -446,26 +408,26 @@ def boarder_dashboard():
         available_rooms = Room.query.filter_by(is_available=True).all()
         user_bookings = db.session.query(Booking, Room).join(Room).filter(
             Booking.boarder_id == session['user_id'],
-            Booking.status == 'active').all()
+            Booking.status == 'active'
+        ).all()
         user = db.session.get(User, session['user_id'])
 
         return render_template(
             'boarder_dashboard.html',
             available_rooms=available_rooms,
             user_bookings=user_bookings,
-            current_user=user  # 💥 Pass here
+            current_user=user   # 💥 Pass here
         )
     except Exception as e:
         logger.error(f"❌ Error in boarder_dashboard: {e}")
         traceback.print_exc()
         return f"Boarder dashboard error: {str(e)}", 500
-
-
+    
 UPLOAD_FOLDER = 'static/uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-
+    
 @app.route('/boarder/update_profile_photo', methods=['GET', 'POST'])
 @role_required('boarder')
 def update_profile_photo_boarder():
@@ -484,7 +446,6 @@ def update_profile_photo_boarder():
                 return redirect(url_for('boarder_dashboard'))
     return render_template('update_profile_photo.html', user=user)
 
-
 @app.route('/landlord/dashboard')
 @role_required('landlord')
 def landlord_dashboard():
@@ -499,12 +460,13 @@ def landlord_dashboard():
 
     user = db.session.get(User, session['user_id'])
 
-    return render_template('landlord_dashboard.html',
-                           my_rooms=my_rooms,
-                           my_bookings=my_bookings,
-                           current_user=user)
-
-
+    return render_template(
+        'landlord_dashboard.html',
+        my_rooms=my_rooms,
+        my_bookings=my_bookings,
+        current_user=user
+    )
+    
 @app.route('/delete_room/<int:room_id>', methods=['POST'])
 @role_required('landlord')
 def delete_room(room_id):
@@ -514,18 +476,18 @@ def delete_room(room_id):
         if room.landlord_id != session['user_id']:
             flash("⚠️ You are not authorized to delete this room.", "danger")
             return redirect(url_for('landlord_dashboard'))
-
+        
         # Delete bookings related to this room
         bookings = Booking.query.filter_by(room_id=room.id).all()
         for booking in bookings:
             db.session.delete(booking)
-
+        
         # Delete room photo if needed
         if room.photo:
             photo_path = os.path.join(UPLOAD_FOLDER, room.photo)
             if os.path.exists(photo_path):
                 os.remove(photo_path)
-
+        
         db.session.delete(room)
         db.session.commit()
         flash("✅ Room deleted successfully.", "success")
@@ -533,7 +495,6 @@ def delete_room(room_id):
         db.session.rollback()
         flash(f"❌ Error deleting room: {e}", "danger")
     return redirect(url_for('landlord_dashboard'))
-
 
 @app.route('/cancel_booking/<int:booking_id>', methods=['POST'])
 @role_required('boarder')
@@ -543,8 +504,7 @@ def cancel_booking(booking_id):
 
         # Check if the booking belongs to the current boarder
         if booking.boarder_id != session['user_id']:
-            flash("⚠️ You are not authorized to cancel this booking.",
-                  "danger")
+            flash("⚠️ You are not authorized to cancel this booking.", "danger")
             return redirect(url_for('boarder_dashboard'))
 
         # Set the room back to available
@@ -562,7 +522,6 @@ def cancel_booking(booking_id):
 
     return redirect(url_for('boarder_dashboard'))
 
-
 @app.route('/landlord/update_profile_photo', methods=['GET', 'POST'])
 @role_required('landlord')
 def update_profile_photo():
@@ -579,13 +538,12 @@ def update_profile_photo():
                 return redirect(url_for('landlord_dashboard'))
     return render_template('update_profile_photo.html', user=user)
 
-
 @app.route('/owner/dashboard')
 @role_required('owner')
 def owner_dashboard():
     try:
         logger.info("✅ Inside owner_dashboard")
-
+        
         pending_users = User.query.filter_by(status='pending').all()
         all_users = User.query.all()
 
@@ -593,16 +551,14 @@ def owner_dashboard():
         all_bookings = db.session.query(Booking, Room, User).\
             join(Room, Booking.room_id == Room.id).\
             join(User, Booking.boarder_id == User.id).all()
-
+        
         stats = {
             'total_users': User.query.count(),
             'total_rooms': Room.query.count(),
-            'active_bookings':
-            Booking.query.filter_by(status='active').count(),
-            'pending_approvals':
-            User.query.filter_by(status='pending').count()
+            'active_bookings': Booking.query.filter_by(status='active').count(),
+            'pending_approvals': User.query.filter_by(status='pending').count()
         }
-
+        
         return render_template('owner_dashboard.html',
                                pending_users=pending_users,
                                all_users=all_users,
@@ -613,7 +569,6 @@ def owner_dashboard():
         logger.error(f"❌ Error in owner_dashboard: {e}")
         traceback.print_exc()
         return f"Owner dashboard error: {str(e)}", 500
-
 
 @app.route('/owner/delete_user/<int:user_id>', methods=['POST'])
 @role_required('owner')
@@ -633,7 +588,6 @@ def owner_delete_user(user_id):
 
     return redirect(url_for('owner_dashboard'))
 
-
 @app.route('/approve_user/<int:user_id>')
 @role_required('owner')
 def approve_user(user_id):
@@ -647,8 +601,7 @@ def approve_user(user_id):
         db.session.commit()
 
         # Send email
-        msg = Message('Your DormEZ Account is Approved',
-                      recipients=[user.email])
+        msg = Message('Your DormEZ Account is Approved', recipients=[user.email])
         msg.body = f"Hello {user.username},\n\nYour DormEZ account has been approved. You can now log in and use the system.\n\nThank you!"
         mail.send(msg)
 
@@ -659,6 +612,7 @@ def approve_user(user_id):
         flash('An error occurred while approving the user.', 'danger')
         return redirect(url_for('owner_dashboard'))
 
+from flask_mail import Message
 
 @app.route('/reject_user/<int:user_id>')
 @role_required('owner')
@@ -703,8 +657,7 @@ DormEZ Team"""
             flash('❌ User rejected and notified via email.', 'warning')
         except Exception as email_error:
             print(f"Email error: {email_error}")
-            flash('⚠️ User rejected, but email notification failed.',
-                  'warning')
+            flash('⚠️ User rejected, but email notification failed.', 'warning')
 
     except Exception as e:
         db.session.rollback()
@@ -713,12 +666,10 @@ DormEZ Team"""
 
     return redirect(url_for('owner_dashboard'))
 
-
 UPLOAD_FOLDER = 'static/uploads'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
 
 @app.route('/add_room', methods=['GET', 'POST'])
 @role_required('landlord')
@@ -748,7 +699,8 @@ def add_room():
             description=description,
             photo=filename,  # <== HERE! make sure it is filename
             landlord_id=session['user_id'],
-            is_available=True)
+            is_available=True
+        )
 
         db.session.add(new_room)
         db.session.commit()
@@ -756,7 +708,6 @@ def add_room():
         return redirect(url_for('landlord_dashboard'))
 
     return render_template('add_room.html')
-
 
 @app.route('/book_room/<int:room_id>')
 @role_required('boarder')
@@ -766,25 +717,28 @@ def book_room(room_id):
 
         # ✅ Check if user already has an active booking for this room
         existing_booking = Booking.query.filter_by(
-            room_id=room.id, boarder_id=session['user_id'],
-            status='active').first()
+            room_id=room.id,
+            boarder_id=session['user_id'],
+            status='active'
+        ).first()
 
         if existing_booking:
             flash('⚠️ You have already booked this room.', 'warning')
             return redirect(url_for('boarder_dashboard'))
 
         # Count current active bookings for this room
-        current_count = Booking.query.filter_by(room_id=room.id,
-                                                status='active').count()
+        current_count = Booking.query.filter_by(room_id=room.id, status='active').count()
 
         if current_count >= room.capacity:
             flash('Room is fully booked', 'danger')
             return redirect(url_for('boarder_dashboard'))
 
         # ✅ Create new booking
-        new_booking = Booking(room_id=room.id,
-                              boarder_id=session['user_id'],
-                              start_date=datetime.utcnow())
+        new_booking = Booking(
+            room_id=room.id,
+            boarder_id=session['user_id'],
+            start_date=datetime.utcnow()
+        )
 
         # Only mark as unavailable when full
         if current_count + 1 >= room.capacity:
@@ -802,8 +756,7 @@ def book_room(room_id):
         db.session.rollback()
         return f"Booking error: {str(e)}", 500
 
-
-@app.route('/logout')
+@app.route('/logout') 
 def logout():
     try:
         session.clear()
@@ -813,7 +766,6 @@ def logout():
         logger.error(f"❌ Error in logout: {e}")
         return f"Logout error: {str(e)}", 500
 
-
 # Initialize database
 def init_db():
     try:
@@ -821,39 +773,44 @@ def init_db():
         with app.app_context():
             create_database_if_missing()
             db.create_all()
-
+            
             # Create default admin user
             if not User.query.filter_by(username='admin').first():
-                admin = User(username='admin',
-                             password=generate_password_hash('admin123'),
-                             email='admin@dormitory.com',
-                             role='owner',
-                             status='approved')
+                admin = User(
+                    username='admin',
+                    password=generate_password_hash('admin123'),
+                    email='admin@dormitory.com',
+                    role='owner',
+                    status='approved'
+                )
                 db.session.add(admin)
                 db.session.commit()
                 logger.info(" Default admin user created: admin/admin123")
             else:
                 logger.info(" Admin user already exists")
-
+        
         logger.info(" Database initialization completed")
     except Exception as e:
         logger.error(f" Database initialization failed: {e}")
         traceback.print_exc()
         raise
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     try:
         logger.info(" Starting Flask application...")
-
+        
+        # Test database connection first
         if not test_db_connection():
             logger.error(" Cannot start app - database connection failed")
             exit(1)
-
+        
         init_db()
         logger.info(" App initialization successful, starting server...")
-        app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 8080)))
+        app.run(debug=True, host='0.0.0.0', port=5000)
     except Exception as e:
         logger.error(f" Failed to start application: {e}")
         traceback.print_exc()
         exit(1)
+        
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
