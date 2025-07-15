@@ -656,9 +656,6 @@ def approve_user(user_id):
         return redirect(url_for('owner_dashboard'))
 
 
-from flask_mail import Message
-
-
 @app.route('/reject_user/<int:user_id>')
 @role_required('owner')
 def reject_user(user_id):

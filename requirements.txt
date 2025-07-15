@@ -16,3 +16,4 @@ requests
 scikit-learn
 mysql-connector-python
 gunicorn
+Pillow
