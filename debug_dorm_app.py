@@ -31,8 +31,11 @@ app.secret_key = os.environ.get("SESSION_SECRET",
 
 # Database setup
 import os
+raw_uri = os.environ.get("DATABASE_URL")
+if raw_uri.startswith("postgres://"):
+    raw_uri = raw_uri.replace("postgres://", "postgresql+psycopg2://", 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = raw_uri
 
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
@@ -838,22 +841,19 @@ def init_db():
         raise
 
 
-if __name__ == '__main__':
-    try:
-        logger.info(" Starting Flask application...")
-
-        # Test database connection first
-        if not test_db_connection():
-            logger.error(" Cannot start app - database connection failed")
-            exit(1)
-
-        init_db()
-        logger.info(" App initialization successful, starting server...")
-        app.run(debug=True, host='0.0.0.0', port=8000)
-    except Exception as e:
-        logger.error(f" Failed to start application: {e}")
-        traceback.print_exc()
-        exit(1)
-
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 8080)))
+            try:
+                logger.info(" Starting Flask application...")
+
+                if not test_db_connection():
+                    logger.error(" Cannot start app - database connection failed")
+                    exit(1)
+
+                init_db()
+                logger.info(" App initialization successful, starting server...")
+                app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 8080)))
+            except Exception as e:
+                logger.error(f" Failed to start application: {e}")
+                traceback.print_exc()
+                exit(1)
+

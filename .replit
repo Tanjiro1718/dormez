@@ -2,4 +2,4 @@ modules = ["web", "python-3.12"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["cacert", "freetype", "glibcLocales", "gunicorn", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "openjpeg", "pkg-config", "tcl", "tk", "xsimd", "zlib"]
+packages = ["cacert", "freetype", "glibcLocales", "gunicorn", "lcms2", "libimagequant", "libjpeg", "libtiff", "libwebp", "libxcrypt", "openjpeg", "pkg-config", "python-launcher", "tcl", "tk", "xsimd", "zlib"]
