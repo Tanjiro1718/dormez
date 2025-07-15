@@ -1,0 +1,103 @@
+[2025-07-15 15:08:46 +0000] [1] [INFO] Starting gunicorn 23.0.0
+
+[2025-07-15 15:08:46 +0000] [1] [INFO] Listening at: http://0.0.0.0:8080 (1)
+
+[2025-07-15 15:08:46 +0000] [1] [INFO] Using worker: sync
+
+[2025-07-15 15:08:46 +0000] [4] [INFO] Booting worker with pid: 4
+
+ERROR:debug_dorm_app:❌ Failed to initialize SQLAlchemy: Either 'SQLALCHEMY_DATABASE_URI' or 'SQLALCHEMY_BINDS' must be set.
+
+[2025-07-15 15:08:48 +0000] [4] [ERROR] Exception in worker process
+
+Traceback (most recent call last):
+
+  File "/opt/venv/lib/python3.12/site-packages/gunicorn/arbiter.py", line 608, in spawn_worker
+
+    worker.init_process()
+
+  File "/opt/venv/lib/python3.12/site-packages/gunicorn/workers/base.py", line 135, in init_process
+
+    self.load_wsgi()
+
+  File "/opt/venv/lib/python3.12/site-packages/gunicorn/workers/base.py", line 147, in load_wsgi
+
+    self.wsgi = self.app.wsgi()
+
+                ^^^^^^^^^^^^^^^
+
+  File "/opt/venv/lib/python3.12/site-packages/gunicorn/app/base.py", line 66, in wsgi
+
+    self.callable = self.load()
+
+                    ^^^^^^^^^^^
+
+  File "/opt/venv/lib/python3.12/site-packages/gunicorn/app/wsgiapp.py", line 57, in load
+
+    return self.load_wsgiapp()
+
+           ^^^^^^^^^^^^^^^^^^^
+
+  File "/opt/venv/lib/python3.12/site-packages/gunicorn/app/wsgiapp.py", line 47, in load_wsgiapp
+
+    mod = importlib.import_module(module)
+
+    return util.import_app(self.app_uri)
+
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+  File "/root/.nix-profile/lib/python3.12/importlib/__init__.py", line 90, in import_module
+
+  File "/opt/venv/lib/python3.12/site-packages/gunicorn/util.py", line 370, in import_app
+
+    return _bootstrap._gcd_import(name[level:], package, level)
+
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+  File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+
+  File "<frozen importlib._bootstrap_external>", line 995, in exec_module
+
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+
+  File "/app/debug_dorm_app.py", line 48, in <module>
+
+    db = SQLAlchemy(app)
+
+         ^^^^^^^^^^^^^^^
+
+  File "/opt/venv/lib/python3.12/site-packages/flask_sqlalchemy/extension.py", line 278, in __init__
+
+    self.init_app(app)
+
+  File "/opt/venv/lib/python3.12/site-packages/flask_sqlalchemy/extension.py", line 355, in init_app
+
+    raise RuntimeError(
+
+RuntimeError: Either 'SQLALCHEMY_DATABASE_URI' or 'SQLALCHEMY_BINDS' must be set.
+
+[2025-07-15 15:08:48 +0000] [4] [INFO] Worker exiting (pid: 4)
+
+[2025-07-15 15:08:48 +0000] [1] [ERROR] Worker (pid:4) exited with code 3
+
+[2025-07-15 15:08:48 +0000] [1] [ERROR] Shutting down: Master
+
+[2025-07-15 15:08:48 +0000] [1] [ERROR] Reason: Worker failed to boot.
+
+[2025-07-15 15:08:49 +0000] [1] [INFO] Starting gunicorn 23.0.0
+
+[2025-07-15 15:08:49 +0000] [1] [INFO] Listening at: http://0.0.0.0:8080 (1)
+
+[2025-07-15 15:08:49 +0000] [1] [INFO] Using worker: sync
+
+[2025-07-15 15:08:49 +0000] [4] [INFO] Booting worker with pid: 4
+
+ERROR:debug_dorm_app:❌ Failed to initialize SQLAlchemy: Either 'SQLALCHEMY_DATABASE_URI' or 'SQLALCHEMY_BINDS' must be set.

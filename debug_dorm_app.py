@@ -358,7 +358,7 @@ def forgot_password():
                 flash('✅ A code has been sent to your email.', 'success')
                 return redirect(url_for('verify_reset_code', user_id=user.id))
             except Exception as e:
-                print(f"Email error: {e}")
+                print(f"Email error: {e}")0
                 flash('❌ Email sending failed. Please check email config.',
                       'danger')
         else:
