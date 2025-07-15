@@ -14,7 +14,6 @@ from PIL import Image
 import numpy as np
 from flask_mail import Mail, Message
 
-mysql://root:xFJUcsfekMwYBgasPmBWCpPdIVHgZTps@yamanote.proxy.rlwy.net:12705/railway
 
 clf = joblib.load('photo_verification_model.pkl')
 
@@ -32,8 +31,9 @@ app.secret_key = os.environ.get("SESSION_SECRET",
                                 "your-secret-key-change-in-production")
 
 # Database setup
-app.config['SQLALCHEMY_DATABASE_URI'] = \
-    'mysql+mysqlconnector://root:xFJUcsfekMwYBgasPmBWCpPdIVHgZTps@yamanote.proxy.rlwy.net:12705/railway'
+import os
+
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 
